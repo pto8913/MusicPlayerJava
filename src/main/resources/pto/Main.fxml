@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane minHeight="400.0" minWidth="300.0" prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: rgb(132, 212, 224);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.MainController">
+   <children>
+      <AnchorPane fx:id="mainContent" layoutY="30.0" prefHeight="370.0" prefWidth="300.0" />
+      <AnchorPane fx:id="sideBarContent" layoutY="30.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="370.0" prefWidth="0.0" />
+      <AnchorPane fx:id="titlePane" minHeight="30.0" minWidth="300.0" onMouseDragged="#onDragTitleBar" prefHeight="30.0" prefWidth="300.0" style="-fx-background-color: rgb(0, 143, 196);">
+         <children>
+            <Button fx:id="menuButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedMenuButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" translateX="5.0">
+               <graphic>
+                  <Pane maxHeight="32.0" maxWidth="32.0" minHeight="32.0" minWidth="32.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="32.0">
+                     <children>
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="7.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="15.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="23.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                     </children>
+                  </Pane>
+               </graphic>
+               <font>
+                  <Font size="1.0" />
+               </font>
+            </Button>
+            <Button fx:id="closeButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutX="268.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedCloseButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <graphic>
+                  <Pane maxHeight="32.0" maxWidth="32.0" minHeight="32.0" minWidth="32.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="32.0">
+                     <children>
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="5.0" layoutY="15.0" rotate="-45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="5.0" layoutY="15.0" rotate="45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                     </children>
+                  </Pane>
+               </graphic>
+            </Button>
+            <Button fx:id="minButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutX="236.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedMinimizeButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" textFill="WHITE">
+               <font>
+                  <Font name="System Bold" size="11.0" />
+               </font>
+               <graphic>
+                  <Pane maxHeight="32.0" maxWidth="32.0" minHeight="32.0" minWidth="32.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="32.0">
+                     <children>
+                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="15.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                     </children>
+                  </Pane>
+               </graphic>
+            </Button>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>

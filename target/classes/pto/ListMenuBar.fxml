@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane fx:id="listMenuBar" minHeight="30.0" prefHeight="30.0" prefWidth="300.0" style="-fx-background-color: rgb(64, 173, 214);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.ListMenuBarController">
+   <children>
+      <Button fx:id="addToListButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutX="268.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedAddToListButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="11.0" />
+         </font>
+         <graphic>
+            <Pane maxHeight="32.0" maxWidth="32.0" minHeight="32.0" minWidth="32.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="32.0">
+               <children>
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="15.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="15.0" rotate="90.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+               </children>
+            </Pane>
+         </graphic>
+      </Button>
+      <Label fx:id="listTitle" layoutX="34.0" layoutY="5.0" maxHeight="232.0" prefWidth="231.0" text="プレイリスト" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="15.0" />
+         </font>
+      </Label>
+      <Button fx:id="backToListButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutX="2.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedBackToListButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" textFill="WHITE">
+         <font>
+            <Font name="System Bold" size="11.0" />
+         </font>
+         <graphic>
+            <Pane maxHeight="32.0" maxWidth="32.0" minHeight="32.0" minWidth="32.0" nodeOrientation="LEFT_TO_RIGHT" prefHeight="32.0" prefWidth="32.0">
+               <children>
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="6.0" layoutY="15.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="20.0" />
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="4.0" layoutY="18.0" rotate="45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="10.0" />
+                  <Rectangle arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="3.0" layoutX="4.0" layoutY="12.0" rotate="-45.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="10.0" />
+               </children>
+            </Pane>
+         </graphic>
+      </Button>
+   </children>
+</AnchorPane>

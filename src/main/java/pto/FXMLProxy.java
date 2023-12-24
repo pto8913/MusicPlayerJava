@@ -5,6 +5,7 @@ import java.io.IOException;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import pto.Controller.ControllerFactory;
+import pto.Controller.ListView.MusicListTypes;
 
 public class FXMLProxy {
     public static class LoadData {
@@ -15,6 +16,22 @@ public class FXMLProxy {
     public static LoadData loadFXML(String fxml) {
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         fxmlLoader.setControllerFactory(new ControllerFactory());
+        LoadData out = new LoadData();
+        out.fxmlLoader = fxmlLoader;
+        try
+        {
+            out.parent = fxmlLoader.load();
+        }
+        catch (IOException e)
+        {
+            System.err.println(e);
+        }
+        return out;
+    }
+
+    public static LoadData loadFXML(String fxml, MusicListTypes cellTypes) {
+        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        fxmlLoader.setControllerFactory(new ControllerFactory(cellTypes));
         LoadData out = new LoadData();
         out.fxmlLoader = fxmlLoader;
         try

@@ -13,11 +13,16 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import pto.FXMLProxy;
+import pto.Constants.PtoSettings;
+import pto.Controller.ListView.MusicListTypes;
+import pto.Controller.ListView.MusicListTypes.MusicListMode;
 import pto.FXMLProxy.LoadData;
-import pto.Manager.ControllerManager;
-import pto.Manager.StageManager;
+import pto.Manager.AppInstance;
 import pto.Utils.ButtonUtils;
 
+/*
+ * Create once in App
+ */
 public class MainController implements Initializable
 {
     // ---------------------------------------------------------
@@ -27,6 +32,8 @@ public class MainController implements Initializable
     // TitleBar States
     // ----------------------------
     @FXML
+    private AnchorPane mainPane;
+    @FXML
     private AnchorPane titlePane;
     @FXML
     private Button closeButton;
@@ -34,6 +41,8 @@ public class MainController implements Initializable
     private Button minButton;
     @FXML
     private Button menuButton;
+    private double titleBarOffsetX;
+    private double titleBarOffsetY;
 
     // ----------------------------
     // MainContent States
@@ -42,6 +51,8 @@ public class MainController implements Initializable
     private AnchorPane mainContent;
     @FXML
     private AnchorPane sideBarContent;
+    @FXML
+    private AnchorPane listMenuPane;
 
     // ---------------------------------------------------------
     // Main Functions
@@ -49,9 +60,38 @@ public class MainController implements Initializable
     @Override
     public void initialize(URL url, ResourceBundle rb)
     {
-        LoadData musicListLoadData = FXMLProxy.loadFXML("MusicList");
-        addMainContent(musicListLoadData.parent);
-        ControllerManager.addController(musicListLoadData.fxmlLoader.getController());
+        /* Initialize ListMenuBarController */
+        {
+            LoadData loadData = FXMLProxy.loadFXML("ListMenuBar");
+            listMenuPane.getChildren().add(loadData.parent);
+            ListMenuBarController listMenuBarController = loadData.fxmlLoader.getController();
+            AppInstance.get().getControllerManager().addController(listMenuBarController);
+        }
+        /* Initialize UserController */
+        {
+            LoadData loadData = FXMLProxy.loadFXML("UserControl");
+            UserController userController = loadData.fxmlLoader.getController();
+            AppInstance.get().getControllerManager().addController(userController);
+            
+            mainPane.getChildren().add(loadData.parent);
+            loadData.parent.setTranslateY(mainPane.getPrefHeight());
+        }
+        /* Initialize MusicListController */
+        {
+            LoadData loadData = FXMLProxy.loadFXML("MusicList", new MusicListTypes(MusicListMode.MusicList));
+            addMainContent(loadData.parent);
+            MusicListController musicListController = loadData.fxmlLoader.getController();
+            AppInstance.get().getControllerManager().addController(PtoSettings.MLCONTROLLER_MUSICLIST, musicListController);
+        }
+        /* Initialize InputNameController */
+        {
+            LoadData loadData = FXMLProxy.loadFXML("InputName");
+            InputNameController inputNameController = loadData.fxmlLoader.getController();
+            AppInstance.get().getControllerManager().addController(inputNameController);
+
+            mainPane.getChildren().add(loadData.parent);
+            loadData.parent.setTranslateY(mainPane.getPrefHeight());
+        }
     }
     public void addMainContent(Node content)
     {
@@ -61,6 +101,10 @@ public class MainController implements Initializable
     {
         return mainContent.getChildren().contains(content);
     }
+    public void removeMainContent(Node content)
+    {
+        mainContent.getChildren().remove(content);
+    }
     public void addSideContent(Node content)
     {
         sideBarContent.getChildren().add(content);
@@ -69,17 +113,23 @@ public class MainController implements Initializable
     {
         return sideBarContent.getChildren().contains(content);
     }
+   
     // ----------------------------
     // TitleBar Functions
     // ----------------------------
     @FXML
+    private void onPressedTitleBar(MouseEvent event)
+    {
+        titleBarOffsetX = event.getSceneX();
+        titleBarOffsetY = event.getSceneY();
+    }
+    @FXML
     private void onDragTitleBar(MouseEvent event)
     {
         Stage stage = (Stage)titlePane.getScene().getWindow();
-        stage.setX(event.getScreenX());
-        stage.setY(event.getScreenY());
+        stage.setX(event.getScreenX() - titleBarOffsetX);
+        stage.setY(event.getScreenY() - titleBarOffsetY);
     }
-
     @FXML
     private void onClickedMinimizeButton(ActionEvent event)
     {
@@ -89,13 +139,12 @@ public class MainController implements Initializable
     @FXML
     private void onClickedCloseButton(ActionEvent event)
     {
-        StageManager.removeAll();
         Platform.exit();
     }
     @FXML
     private void onClickedMenuButton(ActionEvent event)
     {
-        SideBarController sideBarController = ControllerManager.getController(SideBarController.class);
+        SideBarController sideBarController = AppInstance.get().getControllerManager().getController(SideBarController.class);
         if (sideBarController == null)
         {
             LoadData loadData = FXMLProxy.loadFXML("SideBar");

@@ -4,13 +4,20 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 
-public class MusicListCellFactory implements Callback<ListView<MusicData>, javafx.scene.control.ListCell<MusicData>>
+public class MusicListCellFactory implements Callback<ListView<String>, javafx.scene.control.ListCell<String>>
 {
-    @Override
-    public ListCell<MusicData> call(ListView<MusicData> listView)
+    protected MusicListTypes cellTypes;
+
+    public MusicListCellFactory(MusicListTypes cellTypes)
     {
-        ListCell<MusicData> out;
-        out = new MusicListCell();
+        this.cellTypes = cellTypes;
+    }
+
+    @Override
+    public ListCell<String> call(ListView<String> listView)
+    {
+        ListCell<String> out;
+        out = new MusicListCell(cellTypes);
         return out;
     }
 }

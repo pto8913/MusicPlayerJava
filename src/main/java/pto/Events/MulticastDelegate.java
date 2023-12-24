@@ -27,4 +27,9 @@ public class MulticastDelegate <T extends PtoEvent> implements EventListener
             }
         }
     }
+
+    public boolean isBound(String tag)
+    {
+        return events.containsKey(tag);
+    }
 }

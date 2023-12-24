@@ -5,54 +5,47 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
 import javafx.scene.control.ListView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import pto.FXMLProxy;
+import javafx.scene.layout.Pane;
+import javafx.util.Duration;
 import pto.Constants.PtoSettings;
-import pto.FXMLProxy.LoadData;
 import pto.Controller.ListView.MusicData;
 import pto.Controller.ListView.MusicListCellFactory;
-import pto.Controller.ListView.MusicListTypes.MusicListMode;
-import pto.Events.MusicListTypeChangedEvent;
-import pto.Manager.ControllerManager;
-import pto.Manager.MusicJsonManager;
-import pto.Manager.MusicManager;
-import pto.Manager.StateManager;
-import pto.Utils.ButtonUtils;
+import pto.Controller.ListView.MusicListTypes;
+import pto.Manager.AppInstance;
 import pto.Utils.FileSearch;
 import pto.Utils.ListUtils;
 
-public class MusicListController
+/*
+ * Create per MusicListTypes.MusicListMode
+ */
+public class MusicListController implements IFloatingController
 {
     // ---------------------------------------------------------
     // States
     // ---------------------------------------------------------
     @FXML
-    protected ListView<MusicData> musicLinkList;
+    protected AnchorPane listPane;
     @FXML
-    protected AnchorPane menuContent;
+    protected ListView<String> musicLinkList;
+
+    protected MusicListTypes cellTypes;
 
     // ---------------------------------------------------------
     // Main Functions
     // ---------------------------------------------------------
-    public MusicListController()
+    public MusicListController(MusicListTypes cellTypes)
     {
+        this.cellTypes = cellTypes;
     }
     
     @FXML
     public void initialize()
     {
         assert musicLinkList != null;
-
-        ControllerManager.addController(this);
-
-        LoadData loadData = FXMLProxy.loadFXML("ListMenuBar");
-        addMenu(loadData.parent);
-
-        reCreateList();
 
         musicLinkList.setOnScroll(
             event -> {
@@ -70,24 +63,7 @@ public class MusicListController
             }
         );
 
-        StateManager.bindOnMusicListTypeChanged(
-            getClass().getName(), 
-            event -> {
-                onMusicListTypeChanged(event);
-            }
-        );
-
-        StateManager.setMusicListMode(MusicListMode.MusicList);
-    }
-    @Override
-    public void finalize()
-    {
-        StateManager.unbindOnMusicListTypeChanged(getClass().getName());
-    }
-
-    public void addMenu(Node content)
-    {
-        menuContent.getChildren().add(content);
+        reCreateList();
     }
 
     protected void reCreateList()
@@ -97,9 +73,14 @@ public class MusicListController
         initializeMusicList();
     }
 
+    public void setCellTypes(MusicListTypes cellTypes)
+    {
+        this.cellTypes = cellTypes;
+        reCreateList();
+    }
     protected void setCellFactory()
     {
-        musicLinkList.setCellFactory(new MusicListCellFactory());
+        musicLinkList.setCellFactory(new MusicListCellFactory(cellTypes));
     }
 
     protected void initializeMusicList()
@@ -107,17 +88,17 @@ public class MusicListController
         try
         {
             List<MusicData> playLists = new ArrayList<>();
-            switch (StateManager.getMusicListType().mode) {
+            switch (cellTypes.mode) {
                 case PlayList:
                 case AddToPlayList:
-                    playLists = MusicJsonManager.getAllPlayList();
+                    playLists = AppInstance.get().getMusicJsonManager().getAllPlayList();
                     append(playLists);
                     break;
                 case PlayListPlay:
-                    ListMenuBarController listMenuBarController = ControllerManager.getController(ListMenuBarController.class);
+                    ListMenuBarController listMenuBarController = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
                     if (listMenuBarController != null)
                     {
-                        playLists = MusicJsonManager.getAllMusicList(listMenuBarController.getTitle());
+                        playLists = AppInstance.get().getMusicJsonManager().getAllMusicList(listMenuBarController.getPureTitle());
                         append(playLists);
                     }
                     break;
@@ -129,31 +110,15 @@ public class MusicListController
                 default:
                     break;
             }
-            // reCreateList();
         }
         catch (IOException e)
         {
         }
-                System.out.println(MusicManager.getMusics());
-
-    }
-
-    protected void onMusicListTypeChanged(MusicListTypeChangedEvent event)
-    {
-        reCreateList();
     }
 
     protected void onMusicListScrolling()
     {
-        ControllerManager.closeAllFloatingController();
-    }
-
-    // ----------------------------
-    // MusicList Functions
-    // ----------------------------
-    public void removeMusicFromList(String musicName)
-    {
-
+        AppInstance.get().getControllerManager().closeAllFloatingController();
     }
 
     // ----------------------------
@@ -162,33 +127,58 @@ public class MusicListController
     public void removePlayList(String playListName)
     {
         MusicData data = new MusicData(playListName);
-        MusicJsonManager.removePlayList(data);
-        remove(data);
+        AppInstance.get().getMusicJsonManager().removePlayList(data);
         reCreateList();
     }
+    // ---------------------------------------------------------
+    // IFloatingController Functions
+    // ---------------------------------------------------------
+    public double getOpenTranslate()
+    {
+        return 0;//parent.getWidth() - listPane.getPrefWidth();
+    }
+    public double getCloseTranslate()
+    {
+        return -listPane.getPrefWidth();
+    }
+    @Override
+    public boolean isOpen()
+    {
+        return listPane.getTranslateX() == getOpenTranslate();
+    }
+    @Override
+    public void playOpenAnimation()
+    {
+        TranslateTransition openNav = new TranslateTransition(new Duration(200), listPane);
+        openNav.setToX(getOpenTranslate());
+        openNav.play();
 
-    // ----------------------------
-    // Button Utility Functions
-    // ----------------------------
-    @FXML
-    private void onMouseHovered(MouseEvent event)
-    {
-        ButtonUtils.onMouseHovered(event);
+        switch (cellTypes.mode) {
+            case AddToPlayList:
+                reCreateList();
+                break;
+            default:
+                break;
+        }
     }
-    @FXML
-    private void onMouseLeave(MouseEvent event)
+    @Override
+    public void playCloseAnimation()
     {
-        ButtonUtils.onMouseLeave(event);
+        TranslateTransition closeNav = new TranslateTransition(new Duration(100), listPane);
+        closeNav.setToX(getCloseTranslate());
+        closeNav.play();
     }
-    @FXML
-    private void onMousePressed(MouseEvent event)
+    @Override
+    public boolean isIgnoreClose()
     {
-        ButtonUtils.onMousePressed(event);
-    }
-    @FXML
-    private void onMouseReleased(MouseEvent event)
-    {
-        ButtonUtils.onMouseReleased(event);
+        switch (cellTypes.mode)
+        {
+            case MusicList:
+                return true;
+            default:
+                break;
+        }
+        return false;
     }
 
     // ---------------------------------------------------------
@@ -201,25 +191,16 @@ public class MusicListController
         {
             datas.add(new MusicData(file));
         }
-        switch (StateManager.getMusicListType().mode)
-        {
-            case MusicList:
-                MusicManager.append(datas);
-                break;
-            default:
-                break;
-        }
         append(datas);
     }
-
     public boolean add(MusicData data)
     {
-        musicLinkList.getItems().add(data);
+        musicLinkList.getItems().add(data.getName());
         // musicLinkList.refresh();
         //System.out.println(String.format("add file name : %s", data));
         return true;
     }
-    public boolean insert(int index, MusicData data)
+    public boolean insert(int index, String data)
     {
         if (ListUtils.isValidIndex(musicLinkList.getItems(), index))
         {
@@ -232,8 +213,8 @@ public class MusicListController
     }
     public boolean replace(int from, int to)
     {
-        final MusicData fromData = musicLinkList.getItems().get(from);
-        final MusicData toData = musicLinkList.getItems().get(to);
+        final String fromData = musicLinkList.getItems().get(from);
+        final String toData = musicLinkList.getItems().get(to);
         musicLinkList.getItems().set(to, fromData);
         musicLinkList.getItems().set(from, toData);
         //System.out.println(String.format("replace cell!! from %d to %d.", from, to));
@@ -250,7 +231,7 @@ public class MusicListController
         }
         return false;
     }
-    public boolean remove(MusicData obj)
+    public boolean remove(String obj)
     {
         if (musicLinkList.getItems().contains(obj))
         {
@@ -271,7 +252,16 @@ public class MusicListController
         {
             add(data);
         }
-        MusicManager.append(datas);
+
+        switch (cellTypes.mode)
+        {
+            case MusicList:
+            case PlayListPlay:
+                AppInstance.get().getSoundManager().initMusicList(datas);
+                break;
+            default:
+                break;
+        }
         return true;
     }
 }

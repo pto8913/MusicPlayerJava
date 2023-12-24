@@ -8,34 +8,36 @@ import pto.Events.MulticastDelegate;
 import pto.Events.MusicListTypeChangedEvent;
 
 public class StateManager {
-    private static MusicListTypes musicListTypes = new MusicListTypes();
-    private static MulticastDelegate<MusicListTypeChangedEvent> onMusicListTypeChanged = new MulticastDelegate<MusicListTypeChangedEvent>();
+    private MusicListTypes musicListTypes = new MusicListTypes();
+    private MulticastDelegate<MusicListTypeChangedEvent> onMusicListTypeChanged = new MulticastDelegate<MusicListTypeChangedEvent>();
 
-    private StateManager(){}
+    public StateManager(){}
 
-    public static void setMusicListType(MusicListTypes inTypes)
+    public void setMusicListType(MusicListTypes inTypes)
     {
         musicListTypes = inTypes;
         onMusicListTypeChanged.Broadcast(new MusicListTypeChangedEvent(inTypes));
     }
-    public static MusicListTypes getMusicListType()
+    public MusicListTypes getMusicListType()
     {
         return musicListTypes;
     }
 
-    public static void setMusicListMode(MusicListMode inMode)
+    public void setMusicListMode(MusicListMode inMode)
     {
         musicListTypes.mode = inMode;
         setMusicListType(musicListTypes);
     }
-
-    public static void bindOnMusicListTypeChanged(String inTag, EventHandler<MusicListTypeChangedEvent> event)
+    public MusicListMode getMusicListMode()
     {
-        Delegate<MusicListTypeChangedEvent> delegate = new Delegate<MusicListTypeChangedEvent>();
-        delegate.Bind(event);
-        onMusicListTypeChanged.Bind(inTag, delegate);
+        return musicListTypes.mode;
     }
-    public static void unbindOnMusicListTypeChanged(String inTag)
+
+    public void bindOnMusicListTypeChanged(String inTag, EventHandler<MusicListTypeChangedEvent> event)
+    {
+        onMusicListTypeChanged.Bind(inTag, new Delegate<>(event));
+    }
+    public void unbindOnMusicListTypeChanged(String inTag)
     {
         onMusicListTypeChanged.Unbind(inTag);
     }

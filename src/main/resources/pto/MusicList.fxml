@@ -5,9 +5,8 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.MusicListController">
+<AnchorPane fx:id="listPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="340.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.MusicListController">
    <children>
-      <ListView fx:id="musicLinkList" layoutY="30.0" prefHeight="340.0" prefWidth="300.0" style="-fx-background-color: rgb(132, 212, 224);" />
-      <AnchorPane fx:id="menuContent" minHeight="30.0" prefHeight="30.0" prefWidth="300.0" />
+      <ListView fx:id="musicLinkList" prefHeight="340.0" prefWidth="300.0" style="-fx-background-color: rgb(132, 212, 224); -fx-selection-bar: rgb(94, 143, 255); -fx-selection-bar-non-focused: rgb(94, 143, 255);" />
    </children>
 </AnchorPane>

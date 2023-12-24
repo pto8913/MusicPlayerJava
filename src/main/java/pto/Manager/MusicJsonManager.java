@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,26 +22,54 @@ import com.google.gson.reflect.TypeToken;
 
 import pto.Controller.ListView.MusicData;
 import pto.Controller.ListView.MusicDataAdapter;
-import pto.Utils.FileUtils;
 
 public class MusicJsonManager
 {
-    private static final String fileName = "\\src\\main\\java\\pto\\Manager\\PtoMusicPlayerCache.json"; 
-    private static final String PLAYLIST = "PlayList";
-    private static final String MUSICLIST = "MusicList";
-    private static final String FILENAME = "fileName";
+    private final String fileName = "\\src\\main\\java\\pto\\Manager\\PtoMusicPlayerCache.json"; 
+    private final String PLAYLIST = "PlayList";
+    private final String MUSICLIST = "MusicList";
+    private final String FILENAME = "fileName";
+    private final String VOLUME = "Volume";
 
-    private static Map<String, List<MusicData>> cachedPlayList = new HashMap<>();
+    private Map<String, List<MusicData>> cachedPlayList = new HashMap<>();
+
+    // ----------------------------
+    // Volume Functions
+    // ----------------------------
+    public void setVolume(double inVolume)
+    {
+        final String path = getPath();
+        if (isExistsPath(path))
+        {
+            JsonObject json = getMusicDataJson(path);
+            json.addProperty(VOLUME, (double)(int)inVolume);
+
+            updateFile(path, json);
+        }
+    }
+    public double getVolume()
+    {
+        final String path = getPath();
+        if (isExistsPath(path))
+        {
+            JsonObject json = getMusicDataJson(path);
+            if (json.has(VOLUME))
+            {
+                return json.get(VOLUME).getAsNumber().doubleValue();
+            }
+        }
+        return 0;
+    }
 
     // ----------------------------
     // PlayList Functions
     // ----------------------------
-    public static void addPlayList(MusicData playList)
+    public void addPlayList(MusicData playList)
     {
         final String path = getPath();
         JsonObject json = null;
         JsonArray playListJsonArray = new JsonArray();
-        if (FileUtils.isExistsPath(path))
+        if (isExistsPath(path))
         {
             json = getMusicDataJson(path);
             if (json != null)
@@ -63,10 +93,10 @@ public class MusicJsonManager
             cachedPlayList.put(playList.getName(), new ArrayList<>());
         }
     }
-    public static void removePlayList(MusicData playList)
+    public void removePlayList(MusicData playList)
     {
         final String path = getPath();
-        if (FileUtils.isExistsPath(path))
+        if (isExistsPath(path))
         {
             final JsonObject json = getMusicDataJson(path);
             final JsonArray playListJsonArray = getPlayListJsonArray(json);
@@ -88,10 +118,10 @@ public class MusicJsonManager
         }
     }
     
-    public static void musicAddToPlayList(String targetPlayList, MusicData inPlayListItems)
+    public void musicAddToPlayList(String targetPlayList, MusicData inPlayListItems)
     {
         final String path = getPath();
-        if (FileUtils.isExistsPath(path))
+        if (isExistsPath(path))
         {
             final JsonObject json = getMusicDataJson(path);
             final JsonArray playListJsonArray = getPlayListJsonArray(json);
@@ -111,10 +141,37 @@ public class MusicJsonManager
             }
         }
     }
-    public static void musicRemoveFromPlayList(String targetPlayList, MusicData inPlayListItems)
+    public void musicReplacePlayList(String playListName, int from, int to)
     {
         final String path = getPath();
-        if (FileUtils.isExistsPath(path))
+        if (isExistsPath(path))
+        {
+            final JsonObject json = getMusicDataJson(path);
+            final JsonArray playListJsonArray = getPlayListJsonArray(json);
+
+            JsonObject fromJsonObject = new JsonObject();
+            JsonObject toJsonObject = new JsonObject();
+            for (JsonElement playListJson : playListJsonArray)
+            {
+                JsonObject playListJsonObj = playListJson.getAsJsonObject();
+                if (playListJsonObj.get(FILENAME).getAsString().equals(playListName))
+                {
+                    JsonArray musicListInPlayList = playListJsonObj.get(MUSICLIST).getAsJsonArray();
+                    fromJsonObject = musicListInPlayList.get(from).getAsJsonObject();
+                    toJsonObject = musicListInPlayList.get(to).getAsJsonObject();
+                    musicListInPlayList.set(to, fromJsonObject);
+                    musicListInPlayList.set(from, toJsonObject);
+
+                    updatePlayList(path, json, playListJsonArray);
+                    break;
+                }
+            }
+        }
+    }
+    public void musicRemoveFromPlayList(String targetPlayList, MusicData inPlayListItems)
+    {
+        final String path = getPath();
+        if (isExistsPath(path))
         {
             final JsonObject json = getMusicDataJson(path);
             JsonArray playListJsonArray = getPlayListJsonArray(json);
@@ -150,12 +207,16 @@ public class MusicJsonManager
     // ----------------------------
     // Utility Functions
     // ----------------------------
-    private static void updatePlayList(String path, JsonObject json, JsonArray playListJsonArray)
+    public boolean isExistsPath(String path)
+    {
+        return Files.exists(Paths.get(path));
+    }
+    private void updatePlayList(String path, JsonObject json, JsonArray playListJsonArray)
     {
         json.add(PLAYLIST, playListJsonArray);
         updateFile(path, json);
     }
-    private static void updateFile(String path, JsonObject json)
+    private void updateFile(String path, JsonObject json)
     {
         try
         {
@@ -169,23 +230,35 @@ public class MusicJsonManager
         }
     }
 
-    private static String getPath()
+    public String getCurrentPath()
     {
-        return FileUtils.getCurrentPath() + fileName;
+        try
+        {
+            return new java.io.File(".").getCanonicalPath();
+        }
+        catch (IOException e)
+        {
+            System.err.println(e);
+        }
+        return "";
+    } 
+    private String getPath()
+    {
+        return getCurrentPath() + fileName;
     }
 
-    private static <T> List<T> toList(Gson gson, JsonArray jsonArray)
+    private <T> List<T> toList(Gson gson, JsonArray jsonArray)
     {
         Type listType = new TypeToken<List<T>>() {}.getType();
         return gson.fromJson(jsonArray, listType);
     }
-    private static List<MusicData> toMusicList(JsonArray jsonArray)
+    private List<MusicData> toMusicList(JsonArray jsonArray)
     {
         Gson gson = getMusicDataGson();
         Type listType = new TypeToken<List<MusicData>>() {}.getType();
         return gson.fromJson(jsonArray, listType);
     }
-    private static List<MusicData> toMusicList(Collection<String> keys)
+    private List<MusicData> toMusicList(Collection<String> keys)
     {
         List<MusicData> out = new ArrayList<>();
         for (String elem : keys)
@@ -194,18 +267,18 @@ public class MusicJsonManager
         }
         return out;
     }
-    private static <T> JsonArray toJsonArray(List<T> items)
+    private <T> JsonArray toJsonArray(List<T> items)
     {
         Gson gson = getMusicDataGson();
         return gson.toJsonTree(items).getAsJsonArray();
     }
-    private static <T> JsonObject toJson(T item)
+    private <T> JsonObject toJson(T item)
     {
         Gson gson = getMusicDataGson();
         return gson.toJsonTree(item).getAsJsonObject();
     }
 
-    private static JsonObject getMusicDataJson(final String path)
+    private JsonObject getMusicDataJson(final String path)
     {
         try
         {
@@ -221,13 +294,13 @@ public class MusicJsonManager
         }
         return null;
     }    
-    private static Gson getMusicDataGson()
+    private Gson getMusicDataGson()
     {
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(MusicDataAdapter.class, new MusicDataAdapter());
         return builder.create();
     }
-    private static JsonArray getPlayListJsonArray(JsonObject json)
+    private JsonArray getPlayListJsonArray(JsonObject json)
     {
         if (json != null)
         {
@@ -249,10 +322,10 @@ public class MusicJsonManager
         }
         return new JsonArray();
     }
-    private static JsonArray getPlayListJsonArray() throws FileNotFoundException, IOException
+    private JsonArray getPlayListJsonArray() throws FileNotFoundException, IOException
     {
         final String path = getPath();
-        if (FileUtils.isExistsPath(path))
+        if (isExistsPath(path))
         {
             JsonObject obj = getMusicDataJson(path);
             if (obj != null)
@@ -262,7 +335,7 @@ public class MusicJsonManager
         }
         return new JsonArray();
     }
-    public static List<MusicData> getAllPlayList() throws FileNotFoundException, IOException
+    public List<MusicData> getAllPlayList() throws FileNotFoundException, IOException
     {
         if (!cachedPlayList.keySet().isEmpty())
         {
@@ -281,7 +354,7 @@ public class MusicJsonManager
         return null;
     }
 
-    public static JsonArray getMusicListJsonArray(String playListName) throws FileNotFoundException, IOException
+    public JsonArray getMusicListJsonArray(String playListName) throws FileNotFoundException, IOException
     {
         if (cachedPlayList.containsKey(playListName))
         {
@@ -298,7 +371,7 @@ public class MusicJsonManager
         }
         return null;
     }
-    public static List<MusicData> getAllMusicList(String playListName) throws FileNotFoundException, IOException
+    public List<MusicData> getAllMusicList(String playListName) throws FileNotFoundException, IOException
     {
         if (cachedPlayList.containsKey(playListName))
         {
@@ -313,7 +386,7 @@ public class MusicJsonManager
         }
         return new ArrayList<>();
     }
-    public static boolean containMusicInPlayList(String playListName, String musicName)
+    public boolean containMusicInPlayList(String playListName, String musicName)
     {
         if (cachedPlayList.containsKey(playListName))
         {

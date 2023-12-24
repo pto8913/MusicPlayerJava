@@ -7,13 +7,14 @@ import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-import pto.FXMLProxy;
-import pto.FXMLProxy.LoadData;
-import pto.Controller.ListView.MusicListTypes.MusicListMode;
-import pto.Manager.ControllerManager;
-import pto.Manager.StateManager;
+import pto.Constants.PtoSettings;
+import pto.Controller.ListView.MusicListTypes;
+import pto.Manager.AppInstance;
 import pto.Utils.ButtonUtils;
 
+/*
+ * Create once in MainController.
+ */
 public class SideBarController implements IFloatingController
 {
     // ---------------------------------------------------------
@@ -36,9 +37,26 @@ public class SideBarController implements IFloatingController
     @FXML
     public void initialize()
     {
-        ControllerManager.addController(this);
+        AppInstance.get().getControllerManager().addController(this);
     }
 
+    @FXML
+    private void onClickedOpenMusicList(ActionEvent event)
+    {
+        MusicListController musicListController = AppInstance.get().getControllerManager().getController(PtoSettings.MLCONTROLLER_MUSICLIST);
+        AppInstance.get().getControllerManager().closeAllFloatingController();
+        musicListController.playOpenAnimation();
+        AppInstance.get().getStateManager().setMusicListMode(MusicListTypes.MusicListMode.MusicList);
+    }
+    @FXML
+    private void onClickedOpenMusicPlayList(ActionEvent event)
+    {
+        AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_PLAYLIST, MusicListTypes.MusicListMode.PlayList);
+    }
+
+    // ---------------------------------------------------------
+    // IFloatingController Functions
+    // ---------------------------------------------------------
     public double getOpenTranslate()
     {
         return 0;//navList.getPrefWidth();
@@ -47,34 +65,6 @@ public class SideBarController implements IFloatingController
     {
         return -navList.getPrefWidth();
     }
-
-    @FXML
-    private void onClickedOpenMusicList(ActionEvent event)
-    {
-        openMusicList();
-        StateManager.setMusicListMode(MusicListMode.MusicList);
-    }
-    @FXML
-    private void onClickedOpenMusicPlayList(ActionEvent event)
-    {
-        openMusicList();
-        StateManager.setMusicListMode(MusicListMode.PlayList);
-    }
-
-    private void openMusicList()
-    {
-        MainController mainController = ControllerManager.getController(MainController.class);
-        LoadData loadData = FXMLProxy.loadFXML("MusicList");
-        if (!mainController.containMainContent(loadData.parent))
-        {
-            mainController.addMainContent(loadData.parent);
-            ControllerManager.closeAllFloatingController();
-        }
-    }
-
-    // ---------------------------------------------------------
-    // IFloatingController Functions
-    // ---------------------------------------------------------
     @Override
     public boolean isOpen()
     {
@@ -93,6 +83,11 @@ public class SideBarController implements IFloatingController
         TranslateTransition closeNav = new TranslateTransition(new Duration(100), navList);
         closeNav.setToX(getCloseTranslate());
         closeNav.play();
+    }
+    @Override
+    public boolean isIgnoreClose()
+    {
+        return false;
     }
 
     // ----------------------------

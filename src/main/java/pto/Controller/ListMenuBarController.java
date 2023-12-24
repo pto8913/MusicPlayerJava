@@ -4,28 +4,24 @@ import java.io.File;
 import java.util.List;
 
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import pto.FXMLProxy;
-import pto.FXMLProxy.LoadData;
+import pto.Constants.PtoSettings;
 import pto.Controller.ListView.MusicData;
+import pto.Controller.ListView.MusicListTypes;
 import pto.Controller.ListView.MusicListTypes.MusicListMode;
 import pto.Events.MusicListTypeChangedEvent;
-import pto.Manager.ControllerManager;
-import pto.Manager.MusicJsonManager;
-import pto.Manager.StageManager;
-import pto.Manager.StateManager;
+import pto.Manager.AppInstance;
 import pto.Utils.ButtonUtils;
 
+/*
+ * Create once in MainController
+ */
 public class ListMenuBarController
 {
     @FXML
@@ -36,18 +32,24 @@ public class ListMenuBarController
     private Button addToListButton;
     @FXML
     private Button backToListButton;
+    private String pureTitle;
 
     @FXML
     protected void initialize()
     {
-        ControllerManager.addController(this);
-
-        StateManager.bindOnMusicListTypeChanged(
+        AppInstance.get().getStateManager().bindOnMusicListTypeChanged(
             getClass().getName(),
             event -> {
                 onMusicListTypeChanged(event);
             }
         );
+
+        onMusicListTypeChanged(new MusicListTypeChangedEvent(AppInstance.get().getStateManager().getMusicListType()));
+    }
+    @Override
+    protected void finalize()
+    {
+        AppInstance.get().getStateManager().unbindOnMusicListTypeChanged(getClass().getName());
     }
 
     protected void onMusicListTypeChanged(MusicListTypeChangedEvent event)
@@ -60,11 +62,11 @@ public class ListMenuBarController
                 addToListButton.setVisible(true);
                 break;
             case PlayListPlay:
-                // listTitle.setText("プレイリスト");
                 backToListButton.setVisible(true);
                 addToListButton.setVisible(false);
                 break;
             case AddToPlayList:
+                listTitle.setText("プレイリストに追加 : " + pureTitle);
                 backToListButton.setVisible(true);
                 addToListButton.setVisible(false);
                 break;
@@ -78,17 +80,22 @@ public class ListMenuBarController
 
     public void setTitle(String title)
     {
-        listTitle.setText(title);
+        pureTitle = title;
+        listTitle.setText(pureTitle);
     }
     public String getTitle()
     {
         return listTitle.getText();
     }
+    public String getPureTitle()
+    {
+        return pureTitle;
+    }
 
     @FXML
     protected void onClickedAddToListButton(ActionEvent event)
     {
-        switch (StateManager.getMusicListType().mode)
+        switch (AppInstance.get().getStateManager().getMusicListMode())
         {
             case MusicList:
                 addMusic();
@@ -104,13 +111,16 @@ public class ListMenuBarController
     @FXML
     protected void onClickedBackToListButton(ActionEvent event)
     {
-        switch (StateManager.getMusicListType().mode)
+        switch (AppInstance.get().getStateManager().getMusicListMode())
         {
             case AddToPlayList:
-                StateManager.setMusicListMode(MusicListMode.MusicList);
+                AppInstance.get().getControllerManager().closeAllFloatingController();
+                AppInstance.get().getStateManager().setMusicListMode(MusicListMode.MusicList);
                 break;
             case PlayListPlay:
-                StateManager.setMusicListMode(MusicListMode.PlayList);
+                AppInstance.get().getControllerManager().closeAllFloatingController();
+                AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_PLAYLIST, MusicListTypes.MusicListMode.PlayList);
+                AppInstance.get().getStateManager().setMusicListMode(MusicListMode.PlayList);
                 break;
             default:
                 break;
@@ -122,13 +132,14 @@ public class ListMenuBarController
     // ----------------------------
     protected void addMusic()
     {
-        MusicListController musicListController = ControllerManager.getController(MusicListController.class);
+        MusicListController musicListController = AppInstance.get().getControllerManager().getMusicListController();
         if (musicListController != null)
         {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Add Music");
-            fileChooser.getExtensionFilters().add(new ExtensionFilter("Audio Files", "*.wav", "*.mp3", "*.aac"));
-            List<File> files = fileChooser.showOpenMultipleDialog(StageManager.getStage(StageManager.Main));
+            fileChooser.getExtensionFilters().add(new ExtensionFilter("Audio Files", PtoSettings.getExtensions()));
+
+            List<File> files = fileChooser.showOpenMultipleDialog(AppInstance.get().getMainWindow());
             if (files != null)
             {
                 musicListController.appendFiles(files);
@@ -141,32 +152,18 @@ public class ListMenuBarController
     // ----------------------------
     protected void openInputPlayListName()
     {
-        if (ControllerManager.getController(InputNameController.class) == null)
+        InputNameController inputNameController = AppInstance.get().getControllerManager().getController(InputNameController.class);
+        if (!inputNameController.isOpen())
         {
-            LoadData loadData = FXMLProxy.loadFXML("InputName");
-            InputNameController inputNameController = loadData.fxmlLoader.getController();
-            ControllerManager.addController(inputNameController);
-            inputNameController.setOnAction(onPlayListNameAccept());
-
-            Stage stage = new Stage(StageStyle.TRANSPARENT);
-            Scene scene = new Scene(loadData.parent);
-            stage.initStyle(StageStyle.TRANSPARENT);
-            stage.setScene(scene);
-            stage.show();
-            StageManager.addStage("inputName", stage);
+            AppInstance.get().getControllerManager().closeAllFloatingController();
+            inputNameController.playOpenAnimation();
+            inputNameController.setOnAction(
+                event -> {
+                    final InputNameController controller = (InputNameController)AppInstance.get().getControllerManager().getController(InputNameController.class);
+                    addPlayList(controller.getNameText());
+                }
+            );
         }
-    }
-    protected EventHandler<ActionEvent> onPlayListNameAccept()
-    {
-        return event -> {
-            final InputNameController inputNameController = (InputNameController)ControllerManager.getController(InputNameController.class);
-            addPlayList(inputNameController.getNameText());
-
-            ControllerManager.removeController(inputNameController);
-
-            StageManager.getStage("inputName").close();
-            StageManager.removeStage("inputName");
-        };
     }
     protected void addPlayList(String newPlayListName)
     {
@@ -174,13 +171,14 @@ public class ListMenuBarController
         {
             MusicData data = new MusicData(newPlayListName);
 
-            MusicListController musicListController = ControllerManager.getController(MusicListController.class);
-            MusicJsonManager.addPlayList(data);
+            MusicListController musicListController = AppInstance.get().getControllerManager().getMusicListController();
+            AppInstance.get().getMusicJsonManager().addPlayList(data);
             if (musicListController != null)
             {
                 musicListController.add(data);
                 musicListController.reCreateList();
             }
+            AppInstance.get().getControllerManager().closeAllFloatingController();
         }
     }
 

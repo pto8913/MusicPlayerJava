@@ -6,11 +6,12 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane minHeight="400.0" minWidth="300.0" prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: rgb(132, 212, 224);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.MainController">
+<AnchorPane fx:id="mainPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="300.0" style="-fx-background-color: rgb(132, 212, 224);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pto.Controller.MainController">
    <children>
-      <AnchorPane fx:id="mainContent" layoutY="30.0" prefHeight="370.0" prefWidth="300.0" />
+      <AnchorPane fx:id="mainContent" layoutY="60.0" prefHeight="340.0" prefWidth="300.0" />
+      <AnchorPane fx:id="listMenuPane" layoutY="30.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="300.0" />
       <AnchorPane fx:id="sideBarContent" layoutY="30.0" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="370.0" prefWidth="0.0" />
-      <AnchorPane fx:id="titlePane" minHeight="30.0" minWidth="300.0" onMouseDragged="#onDragTitleBar" prefHeight="30.0" prefWidth="300.0" style="-fx-background-color: rgb(0, 143, 196);">
+      <AnchorPane fx:id="titlePane" minHeight="30.0" minWidth="300.0" onMouseDragged="#onDragTitleBar" onMousePressed="#onPressedTitleBar" prefHeight="30.0" prefWidth="300.0" style="-fx-background-color: rgb(0, 143, 196);">
          <children>
             <Button fx:id="menuButton" alignment="CENTER" contentDisplay="CENTER" graphicTextGap="0.0" layoutY="1.0" maxHeight="28.0" maxWidth="28.0" minHeight="28.0" minWidth="28.0" mnemonicParsing="false" onAction="#onClickedMenuButton" onMouseEntered="#onMouseHovered" onMouseExited="#onMouseLeave" onMousePressed="#onMousePressed" onMouseReleased="#onMouseReleased" prefHeight="28.0" prefWidth="28.0" style="-fx-background-color: rgba(0,0,0,0); -fx-background-radius: 2%;" textAlignment="CENTER" translateX="5.0">
                <graphic>

@@ -14,4 +14,10 @@ public class PtoSettings {
     {
         return extensions;
     }
+
+    public static String MLCONTROLLER_MUSICLIST = "MusicListController_MusicList";
+    public static String MLCONTROLLER_PLAYLIST = "MusicListController_PlayList";
+    public static String MLCONTROLLER_PLAYLISTPLAY = "MusicListController_PlayListPlay";
+    public static String MLCONTROLLER_ADDTOPLAYLIST = "MusicListController_AddToPlayList";
+
 }

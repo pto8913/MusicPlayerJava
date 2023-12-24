@@ -11,33 +11,36 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import pto.Constants.PtoSettings;
-import pto.Utils.ListUtils;
+import pto.Controller.ListMenuBarController;
+import pto.Controller.UserController;
+import pto.Manager.AppInstance;
 
-public class MusicListCell extends ListCell<MusicData>
+public class MusicListCell extends ListCell<String>
 {
     protected MusicListCellController cellController;
+    protected MusicListTypes cellTypes;
 
-    public MusicListCell()
+    public MusicListCell(MusicListTypes cellTypes)
     {
+        this.cellTypes = cellTypes;
         setOnDragDetected(event -> {onDragDetected(event);});
         setOnDragOver(event -> {onDragOver(event);});
         setOnDragEntered(event -> {onDragEntered(event);});
         setOnDragExited(event -> {onDragExited(event);});
         setOnDragDropped(event -> {onDragDropped(event);});
     }
-    
+
     @Override
-    public void updateItem(MusicData data, boolean isEmpty)
+    public void updateItem(String data, boolean isEmpty)
     {
         super.updateItem(data, isEmpty);
 
         if (!isEmpty)
         {
-            if (cellController == null)
-            {
-                cellController = new MusicListCellController(data);
-            }
-            if (getIndex() % 2 == 0)
+            cellController = new MusicListCellController(data, cellTypes);
+            final int index = getIndex();
+            setIndex(index);
+            if (index % 2 == 0)
             {
                 setStyle("-fx-control-inner-background: rgba(255, 255, 255, 0.25)");
             }
@@ -49,11 +52,19 @@ public class MusicListCell extends ListCell<MusicData>
         }
         else
         {
+            cellController = null;
             setGraphic(null);
         }
     }
 
+    public void setIndex(int index)
+    {
+        cellController.setIndex(index);
+    }
 
+    // ----------------------------
+    // Main Functions : DragAndDrop
+    // ----------------------------
     void onDragDetected(MouseEvent event)
     {
         if (getItem() == null)
@@ -61,18 +72,18 @@ public class MusicListCell extends ListCell<MusicData>
             return;
         }
 
-        ListView<MusicData> listView = getListView();
+        ListView<String> listView = getListView();
         Dragboard dragboard = getListView().startDragAndDrop(TransferMode.MOVE);
 
         ClipboardContent content = new ClipboardContent();
-        content.put(PtoSettings.DND_FILE_NAMES, new ArrayList<MusicData>(listView.getSelectionModel().getSelectedItems()));
+        content.put(PtoSettings.DND_FILE_NAMES, new ArrayList<String>(listView.getSelectionModel().getSelectedItems()));
 
         dragboard.setContent(content);
         event.consume();
     }
     void onDragOver(DragEvent event)
     {
-        if (event.getGestureSource() != this && ListViewHelper.hasFileNames(event))   
+        if (event.getGestureSource() != this && hasFileNames(event))   
         {
             event.acceptTransferModes(TransferMode.MOVE);
         }
@@ -80,7 +91,7 @@ public class MusicListCell extends ListCell<MusicData>
     }
     void onDragEntered(DragEvent event)
     {
-        if (event.getGestureSource() != this && ListViewHelper.hasFileNames(event))
+        if (event.getGestureSource() != this && hasFileNames(event))
         {
             setOpacity(0.3);
         }
@@ -88,48 +99,61 @@ public class MusicListCell extends ListCell<MusicData>
     }
     void onDragExited(DragEvent event)
     {
-        if (event.getGestureSource() != this && ListViewHelper.hasFileNames(event))
+        if (event.getGestureSource() != this && hasFileNames(event))
         {
             setOpacity(1);
         }
     }
-
     @SuppressWarnings("unchecked")
     void onDragDropped(DragEvent event)
     {
-        if (event.getGestureSource() != this && ListViewHelper.hasFileNames(event))
+        if (event.getGestureSource() != this && hasFileNames(event))
         {
-            final List<MusicData> dataContent =  ListViewHelper.getFileNames(event);
-
-            final MusicData data = dataContent.get(0);
-            
-            final ListView<MusicData> fromListView = (ListView<MusicData>)event.getGestureSource();
+            final ListView<String> fromListView = (ListView<String>)event.getGestureSource();
             final int fromIndex = fromListView.getSelectionModel().getSelectedIndex();
             
             MusicListCell toListViewCell = (MusicListCell)event.getGestureTarget();
-            ListView<MusicData> toListView = toListViewCell.getListView();
+            ListView<String> toListView = toListViewCell.getListView();
             final int toIndex = toListViewCell.getIndex();
 
             //System.out.println(String.format("from %d to %d", fromIndex, toIndex));
             if (fromListView.equals(toListView))
             {
-                ListViewHelper.replace(fromIndex, toIndex, toListView);
-            }
-            else
-            {
-                if (ListUtils.isValidIndex(toListView.getItems(), toIndex))
+                final String fromData = toListView.getItems().get(fromIndex);
+                final String toData = toListView.getItems().get(toIndex);
+                toListView.getItems().set(toIndex, fromData);
+                toListView.getItems().set(fromIndex, toData);
+
+                AppInstance.get().getSoundManager().replace(fromIndex, toIndex);
+                cellController.setIndex(toIndex);
+                toListViewCell.setIndex(fromIndex);
+
+                if (cellTypes.mode == MusicListTypes.MusicListMode.PlayListPlay)
                 {
-                    ListViewHelper.insert(toIndex, data, toListView);
-                }
-                else
-                {
-                    ListViewHelper.add(data, toListView);
+                    ListMenuBarController listMenuBarController = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
+                    AppInstance.get().getMusicJsonManager().musicReplacePlayList(listMenuBarController.getPureTitle(), fromIndex, toIndex);
                 }
             }
             event.setDropCompleted(true);
             event.consume();
+            
+            UserController userController = AppInstance.get().getControllerManager().getController(UserController.class);
+            userController.setMusicData(toIndex, cellController.getTitle());
 
             getListView().getSelectionModel().clearAndSelect(getIndex());
         }
+    }
+
+    // ----------------------------
+    // Main Functions : Utility
+    // ----------------------------
+    protected boolean hasFileNames(DragEvent event)
+    {
+        return event.getDragboard().hasContent(PtoSettings.DND_FILE_NAMES);
+    }
+    @SuppressWarnings("unchecked")
+    protected <T> List<T> getFileNames(DragEvent event)
+    {
+        return (List<T>)event.getDragboard().getContent(PtoSettings.DND_FILE_NAMES);
     }
 }

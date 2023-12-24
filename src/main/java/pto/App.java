@@ -3,14 +3,12 @@ package pto;
 import java.io.IOException;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import pto.FXMLProxy.LoadData;
-import pto.Manager.ControllerManager;
-import pto.Manager.StageManager;
+import pto.Manager.AppInstance;
 
 /**
  * JavaFX App
@@ -26,16 +24,11 @@ public class App extends Application {
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.setScene(scene);
         stage.show();
+        
 
-        stage.setOnCloseRequest(onClosed());
-        StageManager.addStage(StageManager.Main, stage);
-        ControllerManager.addController(loadData.fxmlLoader.getController());
-    }
-    private EventHandler<WindowEvent> onClosed()
-    {
-        return event -> {
-            StageManager.removeAll();
-        };
+        stage.setOnCloseRequest(event -> {onClose(event);});
+        AppInstance.get().setMainWindow(stage);
+        AppInstance.get().getControllerManager().addController(loadData.fxmlLoader.getController());
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -44,5 +37,10 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    private void onClose(WindowEvent event)
+    {
+        AppInstance.get().finalize();
     }
 }

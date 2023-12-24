@@ -78,7 +78,12 @@ public class MusicData implements Serializable
         MusicData musicData = (MusicData)obj;
         if (musicData != null)
         {
-            return musicData.getName().equals(getName());
+            String objName = musicData.getName();
+            if (objName == null)
+            {
+                return false;
+            }
+            return objName.equals(getName());
         }
         String musicString = (String)obj;
         if (musicString != null)

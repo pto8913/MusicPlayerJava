@@ -19,7 +19,7 @@ public class FileSearch
         List<File> files = new ArrayList<>();
         for (String extension : extensions)
         {
-            files.addAll(search(directoryPath, extension));
+            search(files, directoryPath, extension);
         }
         return files;// new ArrayList<>(files);
     }
@@ -28,7 +28,7 @@ public class FileSearch
     * @extension : e.g. mp4, mp3, exe... 
         allow ".mp4"
     */
-    private static List<File> search(String directoryPath, String extension)
+    private static void search(List<File> files, String directoryPath, String extension)
     {
         //System.out.println(String.format("FileSearch Directory : %s", directoryPath));
         final File directory = new File(directoryPath);
@@ -37,7 +37,6 @@ public class FileSearch
             throw new IllegalArgumentException("directoryPath " + directoryPath + " is not directory.");
         }
 
-        List<File> out = new ArrayList<>();
         final String actualExtension = extension.replace(".", "");
         final File[] allFiles = directory.listFiles();
         if (allFiles != null)
@@ -47,16 +46,15 @@ public class FileSearch
             {
                 if (file.isDirectory())
                 {
-                    out.addAll(search(file.getAbsolutePath(), extension));
+                    search(files, file.getAbsolutePath(), extension);
                 }
                 else if (contain(file, actualExtension))
                 {
                     //System.out.println(String.format("filename add : %s", file.getName()));
-                    out.add(file);
+                    files.add(file);
                 }
             }
         }
-        return out;
     }
     private static String getRegex(String extension)
     {

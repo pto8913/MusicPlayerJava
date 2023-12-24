@@ -8,81 +8,49 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
 import pto.FXMLProxy;
+import pto.Constants.PtoSettings;
 import pto.FXMLProxy.LoadData;
 import pto.Controller.ListMenuBarController;
+import pto.Controller.MainController;
 import pto.Controller.MusicListController;
 import pto.Controller.UserController;
 import pto.Controller.ListView.MusicListTypes.MusicListMode;
-import pto.Events.MusicListTypeChangedEvent;
-import pto.Manager.ControllerManager;
-import pto.Manager.MusicJsonManager;
-import pto.Manager.MusicManager;
-import pto.Manager.StageManager;
-import pto.Manager.StateManager;
+import pto.Manager.AppInstance;
 import pto.Utils.ButtonUtils;
 
 public class MusicListCellController
 {
     @FXML
-    private AnchorPane entire;
+    protected AnchorPane entire;
     @FXML
-    private Label musicTitle;
+    protected Label musicTitle;
 
     @FXML
-    private Button addToPlayListButton;
+    protected Button addToPlayListButton;
     @FXML
-    private Button removeButton;
+    protected Button removeButton;
 
-    public MusicListCellController(MusicData inData)
+    protected int index;
+    protected MusicListTypes cellTypes;
+
+    public MusicListCellController(String title, MusicListTypes cellTypes)
     {
+        this.cellTypes = cellTypes;
+
         FXMLProxy.loadFXML("MusicListCell", this);
-        setTitle(inData.getName());
+        setTitle(title);
 
-        StateManager.bindOnMusicListTypeChanged(
-            getClass().getName(), 
-            event -> {
-                onMusicListTypeChanged(event);
-            }
-        );
-        onMusicListTypeChanged(new MusicListTypeChangedEvent(new MusicListTypes(StateManager.getMusicListType().mode)));
-    }
-    @Override
-    public void finalize()
-    {
-        StateManager.unbindOnMusicListTypeChanged(getClass().getName());
+        setMusicListType(cellTypes);
     }
 
-    public void onMusicListTypeChanged(MusicListTypeChangedEvent event)
+    public void setIndex(int index)
     {
-        MusicListTypes cellTypes = event.getType();
-        switch (cellTypes.mode)
-        {
-            case MusicList:
-                addToPlayListButton.setVisible(true);
-                removeButton.setVisible(false);
-                break;
-            case PlayList:
-                addToPlayListButton.setVisible(false);
-                removeButton.setVisible(true);
-                break;
-            case AddToPlayList:
-                ListMenuBarController listMenuBarController = ControllerManager.getController(ListMenuBarController.class);
-                final boolean isMusicInPlayList = MusicJsonManager.containMusicInPlayList(getTitle(), listMenuBarController.getTitle());
-                addToPlayListButton.setVisible(!isMusicInPlayList);
-                removeButton.setVisible(isMusicInPlayList);
-                break;
-            case PlayListPlay:
-                addToPlayListButton.setVisible(false);
-                removeButton.setVisible(false);
-                break;
-            default:
-                addToPlayListButton.setVisible(true);
-                removeButton.setVisible(false);
-                break;
-        }
+        this.index = index;
+    }
+    public int getIndex()
+    {
+        return index;
     }
     
     public void setTitle(String title)
@@ -99,13 +67,42 @@ public class MusicListCellController
         return entire;
     }
 
+    public void setMusicListType(MusicListTypes cellTypes)
+    {
+        switch (cellTypes.mode)
+        {
+            case MusicList:
+                addToPlayListButton.setVisible(true);
+                removeButton.setVisible(false);
+                break;
+            case PlayList:
+                addToPlayListButton.setVisible(false);
+                removeButton.setVisible(true);
+                break;
+            case AddToPlayList:
+                ListMenuBarController listMenuBarController = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
+                final boolean isMusicInPlayList = AppInstance.get().getMusicJsonManager().containMusicInPlayList(getTitle(), listMenuBarController.getPureTitle());
+                addToPlayListButton.setVisible(!isMusicInPlayList);
+                removeButton.setVisible(isMusicInPlayList);
+                break;
+            case PlayListPlay:
+                addToPlayListButton.setVisible(false);
+                removeButton.setVisible(false);
+                break;
+            default:
+                addToPlayListButton.setVisible(true);
+                removeButton.setVisible(false);
+                break;
+        }
+    }
+
     // ----------------------------
     // Cell clicked Functions
     // ----------------------------
     @FXML
     private void onClickedCell(MouseEvent event)
     {
-        switch (StateManager.getMusicListType().mode)
+        switch (cellTypes.mode)
         {
             case MusicList:
             case PlayListPlay:
@@ -121,40 +118,33 @@ public class MusicListCellController
 
     private void onClickedCellForPlay()
     {
-        UserController userController = ControllerManager.getController(UserController.class);
-        if (userController == null)
-        {
-            LoadData loadData = FXMLProxy.loadFXML("UserControl");
-            userController = loadData.fxmlLoader.getController();
-            ControllerManager.addController(userController);
-            
-            final Stage mainStage = StageManager.getStage(StageManager.Main);
-            final Pane rootNode = (Pane)mainStage.getScene().getRoot();
-            rootNode.getChildren().add(loadData.parent);
-            loadData.parent.setTranslateY(rootNode.getHeight());
-        }
+        UserController userController = AppInstance.get().getControllerManager().getController(UserController.class);
         if (!userController.isOpen())
         {
             userController.playOpenAnimation();
         }
         else
         {
-            if (userController.getMusicData().getName().equals(musicTitle.getText()))
+            if (userController.getActiveMusicTitle().equals(musicTitle.getText()))
             {
                 userController.playCloseAnimation();        
             }
         }
-        userController.setMusicData(MusicManager.getMusic(musicTitle.getText()));
+        userController.setMusicData(getIndex(), musicTitle.getText());
     }
     private void onClickedCellForPlayList()
     {
-        ListMenuBarController controller = ControllerManager.getController(ListMenuBarController.class);
+        ListMenuBarController controller = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
         if (controller == null)
         {
             return;
         }
         controller.setTitle(getTitle());
-        StateManager.setMusicListMode(MusicListMode.PlayListPlay);
+
+        /* Initialize MusicListController_PlayListPlay */
+        {
+            AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_PLAYLISTPLAY, MusicListTypes.MusicListMode.PlayListPlay);
+        }
     }
 
     // ----------------------------
@@ -163,44 +153,48 @@ public class MusicListCellController
     @FXML
     private void onClickedAddToPlayListButton(ActionEvent event) throws FileNotFoundException
     {
-        ListMenuBarController listMenuBarController = ControllerManager.getController(ListMenuBarController.class);
-        switch (StateManager.getMusicListType().mode)
+        ListMenuBarController listMenuBarController = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
+        switch (cellTypes.mode)
         {
         case MusicList:
             listMenuBarController.setTitle(getTitle());
-            StateManager.setMusicListMode(MusicListMode.AddToPlayList);
+            /* Initialize MusicListController_AddToPlayList */
+            {
+                AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_ADDTOPLAYLIST, MusicListTypes.MusicListMode.AddToPlayList);
+            }
+            AppInstance.get().getStateManager().setMusicListMode(MusicListMode.AddToPlayList);
             break;
         case AddToPlayList:
-            final String musicTitle = listMenuBarController.getTitle();
-            final MusicData musicData = MusicManager.getMusic(musicTitle);
-            MusicJsonManager.musicAddToPlayList(getTitle(), musicData);
+            AppInstance.get().getMusicJsonManager().musicAddToPlayList(
+                getTitle(),
+                AppInstance.get().getSoundManager().getMusicData(listMenuBarController.getPureTitle())
+            );
             toggleButtonVisibility();
             break;
         default:
             break;
         }
-        ControllerManager.closeAllFloatingController();
     }
     @FXML
     private void onClickedRemoveButton(ActionEvent event) throws FileNotFoundException
     {
-        switch (StateManager.getMusicListType().mode)
+        switch (cellTypes.mode)
         {
         case PlayList:
-            MusicListController musicListController = ControllerManager.getController(MusicListController.class);
+            MusicListController musicListController = AppInstance.get().getControllerManager().getMusicListController();
             musicListController.removePlayList(musicTitle.getText());
             break;
         case AddToPlayList:
-            ListMenuBarController listMenuBarController = ControllerManager.getController(ListMenuBarController.class);
-            final String musicTitle = listMenuBarController.getTitle();
-            final MusicData musicData = MusicManager.getMusic(musicTitle);
-            MusicJsonManager.musicRemoveFromPlayList(getTitle(), musicData);
+            AppInstance.get().getMusicJsonManager().musicRemoveFromPlayList(
+                getTitle(), 
+                AppInstance.get().getSoundManager().getMusicData(getIndex())
+            );
             toggleButtonVisibility();
             break;
         default:
             break;
         }
-        ControllerManager.closeAllFloatingController();
+        AppInstance.get().getControllerManager().closeAllFloatingController();
     }
     public void toggleButtonVisibility()
     {

@@ -155,7 +155,11 @@ public class ListMenuBarController
         InputNameController inputNameController = AppInstance.get().getControllerManager().getController(InputNameController.class);
         if (!inputNameController.isOpen())
         {
+            MusicListController playListController = AppInstance.get().getControllerManager().getMusicListController();
+            playListController.setIgnoreAllClose(true);
             AppInstance.get().getControllerManager().closeAllFloatingController();
+            playListController.setIgnoreAllClose(false);
+
             inputNameController.playOpenAnimation();
             inputNameController.setOnAction(
                 event -> {
@@ -178,7 +182,11 @@ public class ListMenuBarController
                 musicListController.add(data);
                 musicListController.reCreateList();
             }
+
+            MusicListController playListController = AppInstance.get().getControllerManager().getMusicListController();
+            playListController.setIgnoreAllClose(true);
             AppInstance.get().getControllerManager().closeAllFloatingController();
+            playListController.setIgnoreAllClose(false);
         }
     }
 

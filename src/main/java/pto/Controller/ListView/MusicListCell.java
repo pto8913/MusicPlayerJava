@@ -12,6 +12,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import pto.Constants.PtoSettings;
 import pto.Controller.ListMenuBarController;
+import pto.Controller.MusicListController;
 import pto.Controller.UserController;
 import pto.Manager.AppInstance;
 
@@ -23,6 +24,7 @@ public class MusicListCell extends ListCell<String>
     public MusicListCell(MusicListTypes cellTypes)
     {
         this.cellTypes = cellTypes;
+        setOnMousePressed(event -> {onMousePressed(event);});
         setOnDragDetected(event -> {onDragDetected(event);});
         setOnDragOver(event -> {onDragOver(event);});
         setOnDragEntered(event -> {onDragEntered(event);});
@@ -63,6 +65,53 @@ public class MusicListCell extends ListCell<String>
     }
 
     // ----------------------------
+    // Main Functions : Clicked
+    // ----------------------------
+    void onMousePressed(MouseEvent event)
+    {
+        switch (cellTypes.mode)
+        {
+            case MusicList:
+            case PlayListPlay:
+                onClickedCellForPlay();
+                break;
+            case PlayList:
+                onClickedCellForPlayList();
+                break;
+            default:
+                break;
+        }
+    }
+    private void onClickedCellForPlay()
+    {
+        UserController userController = AppInstance.get().getControllerManager().getController(UserController.class);
+        if (!userController.isOpen())
+        {
+            userController.playOpenAnimation();
+        }
+        else
+        {
+            if (userController.getActiveMusicTitle().equals(cellController.getTitle()))
+            {
+                userController.playCloseAnimation();        
+            }
+        }
+        userController.setMusicData(getIndex(), cellController.getTitle());
+    }
+    private void onClickedCellForPlayList()
+    {
+        ListMenuBarController controller = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
+        if (controller == null)
+        {
+            return;
+        }
+        controller.setTitle(cellController.getTitle());
+
+        /* Initialize MusicListController_PlayListPlay */
+        AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_PLAYLISTPLAY, MusicListTypes.MusicListMode.PlayListPlay);
+    }
+
+    // ----------------------------
     // Main Functions : DragAndDrop
     // ----------------------------
     void onDragDetected(MouseEvent event)
@@ -80,6 +129,11 @@ public class MusicListCell extends ListCell<String>
 
         dragboard.setContent(content);
         event.consume();
+
+        MusicListController playListController = AppInstance.get().getControllerManager().getMusicListController();
+        playListController.setIgnoreAllClose(true);
+        AppInstance.get().getControllerManager().closeAllFloatingController();
+        playListController.setIgnoreAllClose(false);
     }
     void onDragOver(DragEvent event)
     {

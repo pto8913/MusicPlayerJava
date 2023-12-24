@@ -97,9 +97,12 @@ public class InputNameController implements IFloatingController
         closeNav.play();
     }
     @Override
-    public boolean isIgnoreClose()
+    public boolean isIgnoreAllClose()
     {
         return false;
     }
-
+    @Override
+    public void setIgnoreAllClose(boolean in)
+    {
+    }
 }

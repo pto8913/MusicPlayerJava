@@ -22,6 +22,7 @@ import com.google.gson.reflect.TypeToken;
 
 import pto.Controller.ListView.MusicData;
 import pto.Controller.ListView.MusicDataAdapter;
+import pto.Utils.ListUtils;
 
 public class MusicJsonManager
 {
@@ -258,15 +259,6 @@ public class MusicJsonManager
         Type listType = new TypeToken<List<MusicData>>() {}.getType();
         return gson.fromJson(jsonArray, listType);
     }
-    private List<MusicData> toMusicList(Collection<String> keys)
-    {
-        List<MusicData> out = new ArrayList<>();
-        for (String elem : keys)
-        {
-            out.add(new MusicData(elem));
-        }
-        return out;
-    }
     private <T> JsonArray toJsonArray(List<T> items)
     {
         Gson gson = getMusicDataGson();
@@ -339,7 +331,7 @@ public class MusicJsonManager
     {
         if (!cachedPlayList.keySet().isEmpty())
         {
-            return toMusicList(cachedPlayList.keySet());
+            return ListUtils.StringToMusicList(cachedPlayList.keySet());
         }
         JsonArray jsonArray = getPlayListJsonArray();
         if (jsonArray != null)

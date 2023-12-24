@@ -51,7 +51,7 @@ public class ControllerManager
             if (IFloatingController.class.isInstance(obj))
             {
                 IFloatingController floatingController = (IFloatingController)obj;
-                if (floatingController.isIgnoreClose())
+                if (floatingController.isIgnoreAllClose())
                 {
                     continue;
                 }

@@ -9,7 +9,6 @@ import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import pto.Constants.PtoSettings;
 import pto.Controller.ListView.MusicData;
@@ -33,6 +32,9 @@ public class MusicListController implements IFloatingController
     protected ListView<String> musicLinkList;
 
     protected MusicListTypes cellTypes;
+    protected List<MusicData> cachedMusicList = new ArrayList<>();
+
+    protected boolean isIgnoreAllClose = false;
 
     // ---------------------------------------------------------
     // Main Functions
@@ -68,6 +70,7 @@ public class MusicListController implements IFloatingController
 
     protected void reCreateList()
     {
+        cachedMusicList.clear();
         musicLinkList.getItems().clear();
         setCellFactory();
         initializeMusicList();
@@ -82,7 +85,6 @@ public class MusicListController implements IFloatingController
     {
         musicLinkList.setCellFactory(new MusicListCellFactory(cellTypes));
     }
-
     protected void initializeMusicList()
     {
         try
@@ -130,6 +132,7 @@ public class MusicListController implements IFloatingController
         AppInstance.get().getMusicJsonManager().removePlayList(data);
         reCreateList();
     }
+    
     // ---------------------------------------------------------
     // IFloatingController Functions
     // ---------------------------------------------------------
@@ -152,12 +155,14 @@ public class MusicListController implements IFloatingController
         TranslateTransition openNav = new TranslateTransition(new Duration(200), listPane);
         openNav.setToX(getOpenTranslate());
         openNav.play();
-
+        
         switch (cellTypes.mode) {
             case AddToPlayList:
+            case PlayListPlay:
                 reCreateList();
                 break;
             default:
+                AppInstance.get().getSoundManager().initMusicList(cachedMusicList);
                 break;
         }
     }
@@ -169,7 +174,7 @@ public class MusicListController implements IFloatingController
         closeNav.play();
     }
     @Override
-    public boolean isIgnoreClose()
+    public boolean isIgnoreAllClose()
     {
         switch (cellTypes.mode)
         {
@@ -178,7 +183,12 @@ public class MusicListController implements IFloatingController
             default:
                 break;
         }
-        return false;
+        return isIgnoreAllClose;
+    }
+    @Override
+    public void setIgnoreAllClose(boolean in)
+    {
+        isIgnoreAllClose = in;
     }
 
     // ---------------------------------------------------------
@@ -196,6 +206,8 @@ public class MusicListController implements IFloatingController
     public boolean add(MusicData data)
     {
         musicLinkList.getItems().add(data.getName());
+        cachedMusicList.add(data);
+
         // musicLinkList.refresh();
         //System.out.println(String.format("add file name : %s", data));
         return true;
@@ -252,12 +264,11 @@ public class MusicListController implements IFloatingController
         {
             add(data);
         }
-
         switch (cellTypes.mode)
         {
             case MusicList:
             case PlayListPlay:
-                AppInstance.get().getSoundManager().initMusicList(datas);
+                AppInstance.get().getSoundManager().initMusicList(cachedMusicList);
                 break;
             default:
                 break;

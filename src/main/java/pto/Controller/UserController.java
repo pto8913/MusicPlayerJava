@@ -73,14 +73,21 @@ public class UserController implements IFloatingController
 
     public void setMusicData(int activeIndex, String title)
     {
-        if (!AppInstance.get().getSoundManager().isPlaying())
+        if (AppInstance.get().getSoundManager().getActiveIndex() == activeIndex)
         {
-            this.activeIndex = activeIndex;
-            musicTitleLabel.setText(title);
-
-            MusicListController controller = AppInstance.get().getControllerManager().getMusicListController();
-            controller.musicLinkList.getSelectionModel().clearAndSelect(activeIndex);
+            musicPlayPolygon.setStyle("-fx-opacity: 0");
+            musicStopPolygon.setStyle("-fx-opacity: 1");
+            isPlaying = true;
         }
+        else
+        {
+            resetState();
+        }
+        this.activeIndex = activeIndex;
+        musicTitleLabel.setText(title);
+
+        MusicListController controller = AppInstance.get().getControllerManager().getMusicListController();
+        controller.musicLinkList.getSelectionModel().clearAndSelect(activeIndex);
     }
     public String getActiveMusicTitle()
     {
@@ -91,6 +98,7 @@ public class UserController implements IFloatingController
     {
         musicPlayPolygon.setStyle("-fx-opacity: 1");
         musicStopPolygon.setStyle("-fx-opacity: 0");
+        isPlaying = false;
     }
 
     // ----------------------------
@@ -317,8 +325,12 @@ public class UserController implements IFloatingController
         closeNav.play();
     }
     @Override
-    public boolean isIgnoreClose()
+    public boolean isIgnoreAllClose()
     {
         return false;
+    }
+    @Override
+    public void setIgnoreAllClose(boolean in)
+    {
     }
 }

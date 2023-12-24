@@ -60,10 +60,14 @@ public class SoundManager
         }
         return new MusicData();
     }
+    public int getActiveIndex()
+    {
+        return activeIndex;
+    }
     public void setVolume(double inVolume)
     {
         volume = inVolume;
-        if (mediaPlayer != null)
+        if (isValid())
         {
             mediaPlayer.setVolume(volume / 100);
         }
@@ -78,6 +82,17 @@ public class SoundManager
 
     public MusicData Play(int index)
     {
+        if (isPlaying())
+        {
+            if (activeIndex == index)
+            {
+                return new MusicData();
+            }
+            else
+            {
+                Stop();
+            }
+        }
         activeIndex = index;
         MusicData musicData = musicList.get(activeIndex); 
         Play(musicData.getPath());
@@ -115,7 +130,7 @@ public class SoundManager
     }
     public void Stop()
     {
-        if (isValid())
+        if (isValid() && isPlaying())
         {
             mediaPlayer.pause();
             mediaDuration = mediaPlayer.getCurrentTime();
@@ -124,26 +139,32 @@ public class SoundManager
     }
     public void setPlayTime(double percent, boolean isPlay)
     {
-        Stop();
-        mediaDuration = media.getDuration().multiply(percent);
-        if (isPlay)
+        if (isValid())
         {
-            Play(null);
+            Stop();
+            mediaDuration = media.getDuration().multiply(percent);
+            if (isPlay)
+            {
+                Play(null);
+            }
         }
     }
     protected void End()
     {
-        Stop();
-        SoundPlayerEvent event = new SoundPlayerEvent();
-        event.setType(SoundEventTypes.End);
-        event.setMusicTitle(musicList.get(activeIndex + 1).getName());
-        onSoundPlayerEvent.Broadcast(event);
-        Next();
+        if (isPlaying())
+        {
+            Stop();
+            SoundPlayerEvent event = new SoundPlayerEvent();
+            event.setType(SoundEventTypes.End);
+            event.setMusicTitle(musicList.get(activeIndex + 1).getName());
+            onSoundPlayerEvent.Broadcast(event);
+            Next();
+        }
     }
 
     public void Jump(double seconds)
     {
-        if (isValid())
+        if (isValid() && isPlaying())
         {
             Stop();
             mediaDuration = mediaDuration.add(new Duration(seconds * 1000));
@@ -152,7 +173,7 @@ public class SoundManager
     }
     public void JumpBack(double seconds)
     {
-        if (isValid())
+        if (isValid() && isPlaying())
         {
             Stop();
             mediaDuration = mediaDuration.subtract(new Duration(seconds * 1000));
@@ -161,7 +182,7 @@ public class SoundManager
     }
     public SoundPlayerData Next()
     {
-        if (isValid())
+        if (isValid() && isPlaying())
         {
             Stop();
             activeIndex += 1;
@@ -175,7 +196,7 @@ public class SoundManager
     }
     public SoundPlayerData Prev()
     {
-        if (isValid())
+        if (isValid() && isPlaying())
         {
             Stop();
             activeIndex -= 1;

@@ -10,11 +10,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import pto.FXMLProxy;
 import pto.Constants.PtoSettings;
-import pto.FXMLProxy.LoadData;
 import pto.Controller.ListMenuBarController;
-import pto.Controller.MainController;
 import pto.Controller.MusicListController;
-import pto.Controller.UserController;
 import pto.Controller.ListView.MusicListTypes.MusicListMode;
 import pto.Manager.AppInstance;
 import pto.Utils.ButtonUtils;
@@ -93,57 +90,6 @@ public class MusicListCellController
                 addToPlayListButton.setVisible(true);
                 removeButton.setVisible(false);
                 break;
-        }
-    }
-
-    // ----------------------------
-    // Cell clicked Functions
-    // ----------------------------
-    @FXML
-    private void onClickedCell(MouseEvent event)
-    {
-        switch (cellTypes.mode)
-        {
-            case MusicList:
-            case PlayListPlay:
-                onClickedCellForPlay();
-                break;
-            case PlayList:
-                onClickedCellForPlayList();
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void onClickedCellForPlay()
-    {
-        UserController userController = AppInstance.get().getControllerManager().getController(UserController.class);
-        if (!userController.isOpen())
-        {
-            userController.playOpenAnimation();
-        }
-        else
-        {
-            if (userController.getActiveMusicTitle().equals(musicTitle.getText()))
-            {
-                userController.playCloseAnimation();        
-            }
-        }
-        userController.setMusicData(getIndex(), musicTitle.getText());
-    }
-    private void onClickedCellForPlayList()
-    {
-        ListMenuBarController controller = AppInstance.get().getControllerManager().getController(ListMenuBarController.class);
-        if (controller == null)
-        {
-            return;
-        }
-        controller.setTitle(getTitle());
-
-        /* Initialize MusicListController_PlayListPlay */
-        {
-            AppInstance.get().getControllerManager().openMusicListController(PtoSettings.MLCONTROLLER_PLAYLISTPLAY, MusicListTypes.MusicListMode.PlayListPlay);
         }
     }
 

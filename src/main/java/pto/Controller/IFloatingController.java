@@ -4,5 +4,6 @@ public interface IFloatingController {
     public boolean isOpen();
     public void playOpenAnimation();
     public void playCloseAnimation();
-    public boolean isIgnoreClose();
+    public boolean isIgnoreAllClose();
+    public void setIgnoreAllClose(boolean in);
 }

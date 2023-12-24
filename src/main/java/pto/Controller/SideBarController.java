@@ -85,11 +85,15 @@ public class SideBarController implements IFloatingController
         closeNav.play();
     }
     @Override
-    public boolean isIgnoreClose()
+    public boolean isIgnoreAllClose()
     {
         return false;
     }
-
+    @Override
+    public void setIgnoreAllClose(boolean in)
+    {
+    }
+    
     // ----------------------------
     // Button Utility Functions
     // ----------------------------

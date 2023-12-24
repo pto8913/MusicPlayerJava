@@ -8,7 +8,7 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="entire" maxHeight="30.0" maxWidth="-Infinity" minHeight="30.0" minWidth="-Infinity" onMousePressed="#onClickedCell" prefHeight="30.0" prefWidth="270.0" style="-fx-background-color: rgba(0,0,0,0);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="entire" maxHeight="30.0" maxWidth="-Infinity" minHeight="30.0" minWidth="-Infinity" prefHeight="30.0" prefWidth="270.0" style="-fx-background-color: rgba(0,0,0,0);" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
    <children>
         <Label fx:id="musicTitle" alignment="TOP_CENTER" layoutX="2.0" layoutY="3.0" maxHeight="-Infinity" maxWidth="200.0" minHeight="-Infinity" prefHeight="24.0" text="MusicTitle" textFill="WHITE">
             <padding>

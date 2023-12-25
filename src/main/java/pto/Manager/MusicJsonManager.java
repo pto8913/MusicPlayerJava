@@ -8,16 +8,11 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 
 import pto.Controller.ListView.MusicData;
@@ -26,13 +21,13 @@ import pto.Utils.ListUtils;
 
 public class MusicJsonManager
 {
-    private final String fileName = "\\src\\main\\java\\pto\\Manager\\PtoMusicPlayerCache.json"; 
+    private final String FILEPATH = "\\src\\main\\java\\pto\\Manager\\PtoMusicPlayerCache.json";
     private final String PLAYLIST = "PlayList";
     private final String MUSICLIST = "MusicList";
     private final String FILENAME = "fileName";
     private final String VOLUME = "Volume";
 
-    private Map<String, List<MusicData>> cachedPlayList = new HashMap<>();
+    private final Map<String, List<MusicData>> cachedPlayList = new HashMap<>();
 
     // ----------------------------
     // Volume Functions
@@ -245,7 +240,7 @@ public class MusicJsonManager
     } 
     private String getPath()
     {
-        return getCurrentPath() + fileName;
+        return getCurrentPath() + FILEPATH;
     }
 
     private <T> List<T> toList(Gson gson, JsonArray jsonArray)
@@ -274,14 +269,14 @@ public class MusicJsonManager
     {
         try
         {
-            com.google.gson.JsonParser parser = new com.google.gson.JsonParser();
-            JsonElement parsedJson = parser.parse(new FileReader(path));
+            //com.google.gson.JsonParser parser = new com.google.gson.JsonParser();
+            JsonElement parsedJson = JsonParser.parseReader(new FileReader(path));
             if (!parsedJson.isJsonNull())
             {
                 return parsedJson.getAsJsonObject();
             }
         }
-        catch (FileNotFoundException e)
+        catch (FileNotFoundException ignored)
         {
         }
         return null;
@@ -305,7 +300,7 @@ public class MusicJsonManager
                 {
                     updateFile(getPath(), json);
                 }
-                catch (Exception e)
+                catch (Exception ignored)
                 {
                 }
                 return newArray;
@@ -314,7 +309,7 @@ public class MusicJsonManager
         }
         return new JsonArray();
     }
-    private JsonArray getPlayListJsonArray() throws FileNotFoundException, IOException
+    private JsonArray getPlayListJsonArray()
     {
         final String path = getPath();
         if (isExistsPath(path))
@@ -327,7 +322,7 @@ public class MusicJsonManager
         }
         return new JsonArray();
     }
-    public List<MusicData> getAllPlayList() throws FileNotFoundException, IOException
+    public List<MusicData> getAllPlayList() throws IOException
     {
         if (!cachedPlayList.keySet().isEmpty())
         {
@@ -346,7 +341,7 @@ public class MusicJsonManager
         return null;
     }
 
-    public JsonArray getMusicListJsonArray(String playListName) throws FileNotFoundException, IOException
+    public JsonArray getMusicListJsonArray(String playListName)
     {
         if (cachedPlayList.containsKey(playListName))
         {
@@ -363,7 +358,7 @@ public class MusicJsonManager
         }
         return null;
     }
-    public List<MusicData> getAllMusicList(String playListName) throws FileNotFoundException, IOException
+    public List<MusicData> getAllMusicList(String playListName) throws IOException
     {
         if (cachedPlayList.containsKey(playListName))
         {

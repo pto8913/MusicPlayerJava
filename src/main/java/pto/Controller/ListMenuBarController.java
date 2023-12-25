@@ -46,11 +46,6 @@ public class ListMenuBarController
 
         onMusicListTypeChanged(new MusicListTypeChangedEvent(AppInstance.get().getStateManager().getMusicListType()));
     }
-    @Override
-    protected void finalize()
-    {
-        AppInstance.get().getStateManager().unbindOnMusicListTypeChanged(getClass().getName());
-    }
 
     protected void onMusicListTypeChanged(MusicListTypeChangedEvent event)
     {

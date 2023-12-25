@@ -1,4 +1,7 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "cmake.configureOnOpen": false
+    "cmake.configureOnOpen": false,
+    // "java.project.referencedLibraries": [
+    //     "lib/**/*.jar"
+    // ]
 }
